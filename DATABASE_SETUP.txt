@@ -1,0 +1,144 @@
+========================================
+MySQL 数据库配置说明
+========================================
+
+1. 下载 MySQL JDBC 驱动
+========================================
+   - 驱动名称：mysql-connector-java-5.1.49.jar
+   - 下载地址：https://dev.mysql.com/downloads/connector/j/
+   - Maven：mysql:mysql-connector-java:5.1.49
+
+2. 配置 IDE（IntelliJ IDEA）
+========================================
+   a) 将驱动 JAR 文件放到项目 lib 目录：
+      D:\java_proj\javaweb\lib\mysql-connector-java-5.1.49.jar
+   
+   b) 在 IDE 中添加驱动到 classpath：
+      File → Project Structure → Libraries
+      点击 "+" → Java → 选择 mysql-connector-java-5.1.49.jar
+      
+   c) 配置 Tomcat 的 CLASSPATH：
+      - 复制 mysql-connector-java-5.1.49.jar 到：
+        D:\tools\apache-tomcat-9.0.113-windows-x64\apache-tomcat-9.0.113\lib\
+
+3. 初始化数据库
+========================================
+   a) 打开 MySQL 客户端（MySQL Workbench 或命令行）
+   
+   b) 执行初始化脚本：
+      - 使用 source 命令：source D:\java_proj\javaweb\sql\init.sql
+      
+      或直接复制以下命令到 MySQL：
+      
+      -- 创建数据库
+      CREATE DATABASE IF NOT EXISTS charging_station_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+      
+      USE charging_station_db;
+      
+      -- 创建充电站表
+      CREATE TABLE IF NOT EXISTS charging_stations (
+          station_id INT PRIMARY KEY AUTO_INCREMENT,
+          location VARCHAR(100) NOT NULL COMMENT '充电站地点',
+          price DECIMAL(10, 2) NOT NULL COMMENT '价格/小时',
+          max_duration INT NOT NULL COMMENT '最长充电时长（小时）',
+          latitude DOUBLE NOT NULL COMMENT '纬度',
+          longitude DOUBLE NOT NULL COMMENT '经度',
+          available BOOLEAN DEFAULT TRUE COMMENT '是否可用',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      
+      -- 创建用户表
+      CREATE TABLE IF NOT EXISTS users (
+          user_id INT PRIMARY KEY AUTO_INCREMENT,
+          name VARCHAR(100) NOT NULL COMMENT '用户名称',
+          email VARCHAR(100) UNIQUE NOT NULL COMMENT '邮箱',
+          balance DECIMAL(10, 2) DEFAULT 0 COMMENT '账户余额',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      
+      -- 创建预约表
+      CREATE TABLE IF NOT EXISTS bookings (
+          booking_id INT PRIMARY KEY AUTO_INCREMENT,
+          user_id INT NOT NULL COMMENT '用户ID',
+          station_id INT NOT NULL COMMENT '充电站ID',
+          start_time DATETIME NOT NULL COMMENT '开始时间',
+          end_time DATETIME NOT NULL COMMENT '结束时间',
+          total_cost DECIMAL(10, 2) NOT NULL COMMENT '总费用',
+          status VARCHAR(20) DEFAULT 'active' COMMENT '预约状态(active/completed/cancelled)',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users(user_id),
+          FOREIGN KEY (station_id) REFERENCES charging_stations(station_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      
+      -- 插入充电站初始数据
+      INSERT INTO charging_stations (location, price, max_duration, latitude, longitude, available) VALUES
+      ('朝阳门', 5.0, 8, 39.9173, 116.4152, TRUE),
+      ('东直门', 7.0, 12, 39.9496, 116.4352, TRUE),
+      ('建国门', 4.5, 6, 39.9110, 116.4197, TRUE),
+      ('天安门广场', 6.0, 10, 39.9075, 116.3972, TRUE),
+      ('故宫', 5.5, 8, 39.9246, 116.3967, TRUE);
+      
+      -- 插入用户初始数据
+      INSERT INTO users (name, email, balance) VALUES
+      ('John Doe', 'john@example.com', 100.0),
+      ('Jane Smith', 'jane@example.com', 150.0),
+      ('Bob Johnson', 'bob@example.com', 75.0);
+
+4. 数据库连接配置
+========================================
+   文件：src/DatabaseConnection.java
+   
+   配置参数：
+   - DB_URL: jdbc:mysql://localhost:3306/charging_station_db?useUnicode=true&characterEncoding=utf8
+   - DB_USER: root
+   - DB_PASSWORD: 26126
+   - 编码：utf8
+   - 驱动版本：MySQL Connector/J 5.1.49
+
+5. 验证配置
+========================================
+   编译并运行后端，检查日志输出：
+   
+   ✅ 表示成功：
+   - "✅ 数据库连接成功!"
+   - "✅ 从数据库加载了 5 个充电站"
+   - "✅ 从数据库加载了 3 个用户"
+   
+   ⚠️ 表示失败，使用内存存储：
+   - "⚠️ 数据库连接失败，使用内存存储"
+
+6. 故障排查
+========================================
+   a) "拒绝连接" 错误：
+      - 检查 MySQL 服务是否正在运行
+      - 验证主机名和端口（localhost:3306）
+      
+   b) "未知数据库" 错误：
+      - 确保已执行初始化脚本创建数据库
+      
+   c) "认证失败" 错误：
+      - 检查用户名（root）和密码（26126）
+      - 确保 MySQL 用户有对应权限
+      
+   d) "驱动不found" 错误：
+      - 确认 MySQL JDBC 驱动已添加到 classpath
+      - 检查 Tomcat 的 lib 目录是否包含驱动
+
+7. 数据库特性
+========================================
+   ✅ 自动加载：应用启动时自动从数据库加载数据
+   ✅ 自动保存：创建预约、完成预约时自动保存到数据库
+   ✅ 备用方案：数据库不可用时自动切换到内存存储
+   ✅ 连接池：自动管理数据库连接
+   ✅ UTF8 支持：完全支持中文和特殊字符
+
+8. 后续优化
+========================================
+   可选的改进：
+   - 添加 HikariCP 连接池管理
+   - 添加 ORM 框架（Hibernate/MyBatis）
+   - 添加数据库事务支持
+   - 添加数据库备份策略

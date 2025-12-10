@@ -2,12 +2,24 @@ public class User {
     private int userId;
     private String name;
     private String email;
+    private String phone;
+    private String password;
     private double balance; // Account balance for charging
 
-    public User(int userId, String name, String email, double balance) {
+    public User(int userId, String name, String email, String phone, double balance) {
         this.userId = userId;
         this.name = name;
         this.email = email;
+        this.phone = phone;
+        this.balance = balance;
+    }
+
+    public User(int userId, String name, String email, String phone, String password, double balance) {
+        this.userId = userId;
+        this.name = name;
+        this.email = email;
+        this.phone = phone;
+        this.password = password;
         this.balance = balance;
     }
 
@@ -21,6 +33,22 @@ public class User {
 
     public String getEmail() {
         return email;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public double getBalance() {
@@ -49,6 +77,8 @@ public class User {
                 "userId=" + userId +
                 ", name='" + name + '\'' +
                 ", email='" + email + '\'' +
+                ", phone='" + phone + '\'' +
+                ", password='" + password + '\'' +
                 ", balance=" + balance +
                 '}';
     }
