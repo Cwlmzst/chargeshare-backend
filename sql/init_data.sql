@@ -5,7 +5,7 @@ USE charging_station_db;
 DROP TABLE IF EXISTS bookings;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS charging_stations;
--- Create charging stations table
+-- 创建充电站表
 CREATE TABLE IF NOT EXISTS charging_stations (
     station_id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(100) NOT NULL,
@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS charging_stations (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- Create users table
+-- 创建用户表
 CREATE TABLE IF NOT EXISTS users (
     user_id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(100) NOT NULL,
@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- Create bookings table
+-- 创建预约表
 CREATE TABLE IF NOT EXISTS bookings (
     booking_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
@@ -50,19 +50,19 @@ CREATE TABLE IF NOT EXISTS bookings (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
--- Insert user data
+-- 插入用户数据
 INSERT INTO users (name, email, phone, password, balance) VALUES
 ('John Doe', 'john@example.com', '13800138001', '123456', 100.0),
 ('Jane Smith', 'jane@example.com', '13800138002', '123456', 150.0),
 ('Bob Johnson', 'bob@example.com', '13800138003', '123456', 75.0);
 
--- Create indexes
+-- 创建索引
 CREATE INDEX idx_station_available ON charging_stations(available_sockets);
 CREATE INDEX idx_booking_user ON bookings(user_id);
 CREATE INDEX idx_booking_station ON bookings(station_id);
 CREATE INDEX idx_booking_status ON bookings(status);
 
--- Insert Nanjing charging stations data
+-- 插入南京充电站数据
 INSERT INTO charging_stations (name, latitude, longitude, address, total_sockets, available_sockets, power_output, price_per_hour, status, description, created_at, updated_at) VALUES
 ('南京鼓楼充电站', 32.05840000, 118.77750000, '南京市鼓楼区中山路1号', 10, 6, 7.00, 5.50, 'ACTIVE', '市中心充电站，24小时服务', NOW(), NOW()),
 ('南京玄武充电站', 32.05000000, 118.80000000, '南京市玄武区玄武巷1号', 8, 8, 3.50, 3.50, 'ACTIVE', '玄武湖公园附近，快充服务', NOW(), NOW()),
