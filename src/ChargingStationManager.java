@@ -9,9 +9,10 @@ import java.sql.Timestamp;
 
 public class ChargingStationManager {
     private static ChargingStationManager instance;
-    private List<ChargingStation> stations;
-    private List<User> users;
-    private List<Booking> bookings;
+    // 将字段标记为 final，因为它们在初始化后不会改变
+    private final List<ChargingStation> stations;
+    private final List<User> users;
+    private final List<Booking> bookings;
     private int nextBookingId;
 
     public boolean useDatabase = true; // 切换数据库和内存存储
@@ -260,14 +261,6 @@ public class ChargingStationManager {
         }
     }
 
-    public User getUserByEmailOrName(String identifier) {
-        return users.stream()
-            .filter(u -> u.getEmail().equalsIgnoreCase(identifier) || 
-                         u.getName().equalsIgnoreCase(identifier))
-            .findFirst()
-            .orElse(null);
-    }
-
     public boolean updateUserInDatabase(User user) {
         String sql = "UPDATE users SET name = ?, email = ?, phone = ? WHERE user_id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
@@ -449,58 +442,6 @@ public class ChargingStationManager {
         }
     }
 
-    public List<Booking> getUserBookings(int userId) {
-        List<Booking> userBookings = new ArrayList<>();
-        for (Booking booking : bookings) {
-            if (booking.getUserId() == userId) {
-                userBookings.add(booking);
-            }
-        }
-        return userBookings;
-    }
-
-    public boolean completeBooking(int bookingId) {
-        Booking booking = bookings.stream()
-                .filter(b -> b.getBookingId() == bookingId)
-                .findFirst()
-                .orElse(null);
-
-        if (booking == null || !booking.getStatus().equals("active")) {
-            return false;
-        }
-
-        booking.setStatus("completed");
-        ChargingStation station = getStationById(booking.getStationId());
-        if (station != null) {
-            // Increase available sockets when booking is completed
-            station.setAvailableSockets(station.getAvailableSockets() + 1);
-            
-            // 更新数据库
-            if (useDatabase) {
-                updateBookingStatus(bookingId, "completed");
-                updateStationAvailability(booking.getStationId(), station.getAvailableSockets());
-            }
-        }
-        return true;
-    }
-    
-    /**
-     * 更新预约状态
-     */
-    private void updateBookingStatus(int bookingId, String status) {
-        String sql = "UPDATE bookings SET status = ? WHERE booking_id = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
-            pstmt.setString(1, status);
-            pstmt.setInt(2, bookingId);
-            pstmt.executeUpdate();
-            System.out.println("✅ 预约状态已更新");
-        } catch (SQLException e) {
-            System.err.println("❌ 更新预约失败: " + e.getMessage());
-        }
-    }
-
     public List<Booking> getAllBookings() {
         return new ArrayList<>(bookings);
     }
@@ -524,5 +465,28 @@ public class ChargingStationManager {
         for (Booking booking : bookings) {
             System.out.println(booking);
         }
+    }
+
+    public boolean updateBookingStatus(int bookingId) {
+        for (Booking booking : bookings) {
+            if (booking.getBookingId() == bookingId) {
+                booking.setStatus("completed");
+                // Update in database
+                try (Connection conn = DatabaseConnection.getConnection();
+                     PreparedStatement stmt = conn.prepareStatement(
+                             "UPDATE bookings SET status = ? WHERE booking_id = ?")) {
+                    
+                    stmt.setString(1, "completed");
+                    stmt.setInt(2, bookingId);
+                    
+                    int rowsAffected = stmt.executeUpdate();
+                    return rowsAffected > 0;
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                    return false;
+                }
+            }
+        }
+        return false;
     }
 }

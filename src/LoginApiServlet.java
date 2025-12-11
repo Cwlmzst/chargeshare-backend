@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 @WebServlet("/api/auth/login")
 public class LoginApiServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+            throws IOException {
         response.setContentType("application/json; charset=UTF-8");
         PrintWriter out = response.getWriter();
 
@@ -62,7 +62,7 @@ public class LoginApiServlet extends HttpServlet {
     }
 
     protected void doOptions(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+            throws IOException {
         response.setStatus(HttpServletResponse.SC_OK);
     }
 }
