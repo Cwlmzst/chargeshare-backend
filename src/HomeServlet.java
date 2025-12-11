@@ -61,7 +61,8 @@ public class HomeServlet extends HttpServlet {
         
         out.println("<div class='info'>");
         out.println("<h3>系统功能:</h3>");
-        out.println("<p>✓ 浏览带有价格信息的可用充电站</p>");
+        out.println("<p>✓ 浏览带有详细信息的充电站（地址、插座数量、功率等）</p>");
+        out.println("<p>✓ 实时查看充电站可用插座数量</p>");
         out.println("<p>✓ 通过选择用户、充电站和持续时间来创建预订</p>");
         out.println("<p>✓ 自动从用户账户扣除余额</p>");
         out.println("<p>✓ 跟踪所有预订及其状态</p>");

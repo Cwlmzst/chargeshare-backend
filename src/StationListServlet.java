@@ -34,18 +34,21 @@ public class StationListServlet extends HttpServlet {
         out.println("</style>");
         out.println("</head>");
         out.println("<body>");
-        out.println("<h1>可用充电站</h1>");
+        out.println("<h1>充电站列表</h1>");
         out.println("<table>");
-        out.println("<tr><th>充电站编列</th><th>位置</th><th>状态</th><th>价格 (元/小时)</th><th>最大持续 (小时)</th></tr>");
+        out.println("<tr><th>ID</th><th>名称</th><th>地址</th><th>状态</th><th>插座总数</th><th>可用插座</th><th>功率(kW)</th><th>价格 (元/小时)</th></tr>");
 
         for (ChargingStation station : stations) {
-            String status = station.isAvailable() ? "<span class='available'>可用</span>" : "<span class='unavailable'>使用中</span>";
+            String status = station.getAvailableSockets() > 0 ? "<span class='available'>可用</span>" : "<span class='unavailable'>已满</span>";
             out.println("<tr>");
             out.println("<td>" + station.getStationId() + "</td>");
-            out.println("<td>" + station.getLocation() + "</td>");
+            out.println("<td>" + station.getName() + "</td>");
+            out.println("<td>" + station.getAddress() + "</td>");
             out.println("<td>" + status + "</td>");
-            out.println("<td>$" + String.format("%.2f", station.getPrice()) + "/元</td>");
-            out.println("<td>" + station.getMaxDuration() + "</td>");
+            out.println("<td>" + station.getTotalSockets() + "</td>");
+            out.println("<td>" + station.getAvailableSockets() + "</td>");
+            out.println("<td>" + String.format("%.2f", station.getPowerOutput()) + "</td>");
+            out.println("<td>¥" + String.format("%.2f", station.getPricePerHour()) + "</td>");
             out.println("</tr>");
         }
 

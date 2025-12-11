@@ -21,7 +21,7 @@ public class Main {
         if (demoBooking != null) {
             System.out.println("✓ Successfully created booking: " + demoBooking);
             System.out.println("✓ User balance after booking: $" + String.format("%.2f", manager.getUserById(1).getBalance()));
-            System.out.println("✓ Station 1 availability: " + manager.getStationById(1).isAvailable());
+            System.out.println("✓ Station 1 available sockets: " + manager.getStationById(1).getAvailableSockets());
         }
     }
 }

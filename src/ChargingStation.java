@@ -1,54 +1,39 @@
 public class ChargingStation {
     private int stationId;
-    private String location;
-    private boolean available;
-    private double price; // Price per hour
-    private int maxDuration; // Max charging hours
-    private double latitude;   // Latitude coordinate
-    private double longitude;  // Longitude coordinate
+    private String name;
+    private double latitude;
+    private double longitude;
+    private String address;
+    private int totalSockets;
+    private int availableSockets;
+    private double powerOutput;
+    private double pricePerHour;
+    private String status;
+    private String description;
 
-    public ChargingStation(int stationId, String location, double price, int maxDuration) {
+    public ChargingStation(int stationId, String name, double latitude, double longitude, 
+                          String address, int totalSockets, int availableSockets, 
+                          double powerOutput, double pricePerHour, String status, String description) {
         this.stationId = stationId;
-        this.location = location;
-        this.price = price;
-        this.maxDuration = maxDuration;
-        this.available = true;
-        this.latitude = 0.0;
-        this.longitude = 0.0;
-    }
-
-    public ChargingStation(int stationId, String location, double price, int maxDuration, double latitude, double longitude) {
-        this.stationId = stationId;
-        this.location = location;
-        this.price = price;
-        this.maxDuration = maxDuration;
-        this.available = true;
+        this.name = name;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.address = address;
+        this.totalSockets = totalSockets;
+        this.availableSockets = availableSockets;
+        this.powerOutput = powerOutput;
+        this.pricePerHour = pricePerHour;
+        this.status = status;
+        this.description = description;
     }
 
+    // Getters
     public int getStationId() {
         return stationId;
     }
 
-    public String getLocation() {
-        return location;
-    }
-
-    public boolean isAvailable() {
-        return available;
-    }
-
-    public void setAvailable(boolean available) {
-        this.available = available;
-    }
-
-    public double getPrice() {
-        return price;
-    }
-
-    public int getMaxDuration() {
-        return maxDuration;
+    public String getName() {
+        return name;
     }
 
     public double getLatitude() {
@@ -59,16 +44,89 @@ public class ChargingStation {
         return longitude;
     }
 
+    public String getAddress() {
+        return address;
+    }
+
+    public int getTotalSockets() {
+        return totalSockets;
+    }
+
+    public int getAvailableSockets() {
+        return availableSockets;
+    }
+
+    public double getPowerOutput() {
+        return powerOutput;
+    }
+
+    public double getPricePerHour() {
+        return pricePerHour;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    // Setters
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public void setTotalSockets(int totalSockets) {
+        this.totalSockets = totalSockets;
+    }
+
+    public void setAvailableSockets(int availableSockets) {
+        this.availableSockets = availableSockets;
+    }
+
+    public void setPowerOutput(double powerOutput) {
+        this.powerOutput = powerOutput;
+    }
+
+    public void setPricePerHour(double pricePerHour) {
+        this.pricePerHour = pricePerHour;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     @Override
     public String toString() {
         return "ChargingStation{" +
                 "stationId=" + stationId +
-                ", location='" + location + '\'' +
-                ", available=" + available +
-                ", price=" + price +
-                ", maxDuration=" + maxDuration +
+                ", name='" + name + '\'' +
                 ", latitude=" + latitude +
                 ", longitude=" + longitude +
+                ", address='" + address + '\'' +
+                ", totalSockets=" + totalSockets +
+                ", availableSockets=" + availableSockets +
+                ", powerOutput=" + powerOutput +
+                ", pricePerHour=" + pricePerHour +
+                ", status='" + status + '\'' +
+                ", description='" + description + '\'' +
                 '}';
     }
 }

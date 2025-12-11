@@ -34,10 +34,14 @@ public class StationDetailApiServlet extends HttpServlet {
             String json = "{" +
                     "\"id\":" + station.getStationId() + "," +
                     "\"stationId\":" + station.getStationId() + "," +
-                    "\"location\":\"" + station.getLocation() + "\"," +
-                    "\"available\":" + station.isAvailable() + "," +
-                    "\"price\":" + station.getPrice() + "," +
-                    "\"maxDuration\":" + station.getMaxDuration() + "," +
+                    "\"name\":\"" + station.getName() + "\"," +
+                    "\"address\":\"" + station.getAddress() + "\"," +
+                    "\"availableSockets\":" + station.getAvailableSockets() + "," +
+                    "\"totalSockets\":" + station.getTotalSockets() + "," +
+                    "\"powerOutput\":" + station.getPowerOutput() + "," +
+                    "\"pricePerHour\":" + station.getPricePerHour() + "," +
+                    "\"status\":\"" + station.getStatus() + "\"," +
+                    "\"description\":\"" + station.getDescription() + "\"," +
                     "\"lat\":" + station.getLatitude() + "," +
                     "\"lng\":" + station.getLongitude() +
                     "}";

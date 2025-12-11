@@ -1,4 +1,3 @@
-
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -44,7 +43,8 @@ public class BookingServlet extends HttpServlet {
         List<ChargingStation> stations = manager.getAvailableStations();
         for (ChargingStation station : stations) {
             out.println("<option value='" + station.getStationId() + "'>" + 
-                        station.getLocation() + " ($" + String.format("%.2f", station.getPrice()) + "/小时)</option>");
+                        station.getName() + " (¥" + String.format("%.2f", station.getPricePerHour()) + "/小时, " + 
+                        station.getAvailableSockets() + "/" + station.getTotalSockets() + " 可用)</option>");
         }
         
         out.println("</select>");
@@ -84,13 +84,15 @@ public class BookingServlet extends HttpServlet {
             out.println("<body>");
 
             if (booking != null) {
+                ChargingStation station = manager.getStationById(stationId);
                 out.println("<div class='success'>");
                 out.println("<h2>预订成功创建!</h2>");
                 out.println("<p><strong>预订ID:</strong> " + booking.getBookingId() + "</p>");
-                out.println("<p><strong>充电站:</strong> " + manager.getStationById(stationId).getLocation() + "</p>");
+                out.println("<p><strong>充电站:</strong> " + station.getName() + "</p>");
+                out.println("<p><strong>地址:</strong> " + station.getAddress() + "</p>");
                 out.println("<p><strong>持续:</strong> " + hours + " 小时</p>");
-                out.println("<p><strong>总成本:</strong> $" + String.format("%.2f", booking.getTotalCost()) + "</p>");
-                out.println("<p><strong>状态:</strong> " + ("活动".equals(booking.getStatus()) ? "活动" : "完成") + "</p>");
+                out.println("<p><strong>总成本:</strong> ¥" + String.format("%.2f", booking.getTotalCost()) + "</p>");
+                out.println("<p><strong>状态:</strong> " + ("active".equals(booking.getStatus()) ? "活动" : "完成") + "</p>");
                 out.println("</div>");
             } else {
                 out.println("<div class='error'>");
@@ -98,14 +100,14 @@ public class BookingServlet extends HttpServlet {
                 out.println("<p>请检查:</p>");
                 out.println("<ul>");
                 out.println("<li>用户ID存在</li>");
-                out.println("<li>充电站可用</li>");
-                out.println("<li>持续不超过站点最大值</li>");
+                out.println("<li>充电站有可用插座</li>");
                 out.println("<li>用户有足够的余额</li>");
                 out.println("</ul>");
                 out.println("</div>");
             }
 
             out.println("<br><a href='/javaweb/'>主页</a>");
+            out.println("<br><a href='/javaweb/bookings'>查看所有预订</a>");
             out.println("</body>");
             out.println("</html>");
         } catch (NumberFormatException e) {

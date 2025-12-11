@@ -34,14 +34,15 @@ public class UserServlet extends HttpServlet {
         out.println("<body>");
         out.println("<h1>系统用户</h1>");
         out.println("<table>");
-        out.println("<tr><th>用户ID</th><th>名称</th><th>电子邮件</th><th>账户余额</th></tr>");
+        out.println("<tr><th>用户ID</th><th>名称</th><th>电子邮件</th><th>电话</th><th>账户余额</th></tr>");
 
         for (User user : users) {
             out.println("<tr>");
             out.println("<td>" + user.getUserId() + "</td>");
             out.println("<td>" + user.getName() + "</td>");
             out.println("<td>" + user.getEmail() + "</td>");
-            out.println("<td>$" + String.format("%.2f", user.getBalance()) + "</td>");
+            out.println("<td>" + (user.getPhone() != null ? user.getPhone() : "N/A") + "</td>");
+            out.println("<td>¥" + String.format("%.2f", user.getBalance()) + "</td>");
             out.println("</tr>");
         }
 

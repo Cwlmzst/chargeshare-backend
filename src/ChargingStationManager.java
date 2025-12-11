@@ -53,7 +53,7 @@ public class ChargingStationManager {
      * 从数据库加载充电站
      */
     private void loadStationsFromDatabase() {
-        String sql = "SELECT station_id, location, price, max_duration, latitude, longitude, available FROM charging_stations";
+        String sql = "SELECT station_id, name, latitude, longitude, address, total_sockets, available_sockets, power_output, price_per_hour, status, description FROM charging_stations";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql);
              ResultSet rs = pstmt.executeQuery()) {
@@ -61,13 +61,17 @@ public class ChargingStationManager {
             while (rs.next()) {
                 ChargingStation station = new ChargingStation(
                     rs.getInt("station_id"),
-                    rs.getString("location"),
-                    rs.getDouble("price"),
-                    rs.getInt("max_duration"),
+                    rs.getString("name"),
                     rs.getDouble("latitude"),
-                    rs.getDouble("longitude")
+                    rs.getDouble("longitude"),
+                    rs.getString("address"),
+                    rs.getInt("total_sockets"),
+                    rs.getInt("available_sockets"),
+                    rs.getDouble("power_output"),
+                    rs.getDouble("price_per_hour"),
+                    rs.getString("status"),
+                    rs.getString("description")
                 );
-                station.setAvailable(rs.getBoolean("available"));
                 stations.add(station);
             }
             System.out.println("✅ 从数据库加载了 " + stations.size() + " 个充电站");
@@ -142,17 +146,13 @@ public class ChargingStationManager {
      * 加载默认内存数据
      */
     private void loadDefaultData() {
-        // Add sample charging stations with coordinates (Beijing area)
-        stations.add(new ChargingStation(1, "朝阳门", 5.0, 8, 39.9173, 116.4152));
-        stations.add(new ChargingStation(2, "东直门", 7.0, 12, 39.9496, 116.4352));
-        stations.add(new ChargingStation(3, "建国门", 4.5, 6, 39.9110, 116.4197));
-        stations.add(new ChargingStation(4, "天安门广场", 6.0, 10, 39.9075, 116.3972));
-        stations.add(new ChargingStation(5, "故宫", 5.5, 8, 39.9246, 116.3967));
-
-        // Add sample users
-        users.add(new User(1, "John Doe", "john@example.com", "13800138001", 100.0));
-        users.add(new User(2, "Jane Smith", "jane@example.com", "13800138002", 150.0));
-        users.add(new User(3, "Bob Johnson", "bob@example.com", "13800138003", 75.0));
+        // Add sample charging stations with coordinates (Nanjing area)
+        stations.add(new ChargingStation(1, "南京鼓楼充电站", 32.05840000, 118.77750000, 
+            "南京市鼓楼区中山路1号", 10, 6, 7.00, 5.50, "ACTIVE", "市中心充电站，24小时服务"));
+        stations.add(new ChargingStation(2, "南京玄武充电站", 32.05000000, 118.80000000, 
+            "南京市玄武区玄武巷1号", 8, 8, 3.50, 3.50, "ACTIVE", "玄武湖公园附近，快充服务"));
+        stations.add(new ChargingStation(3, "南京江宁充电站", 31.95390000, 118.87200000, 
+            "南京市江宁区双龙大道1号", 12, 4, 10.00, 5.00, "ACTIVE", "江宁区主要充电站，快充服务"));
     }
 
     // Station methods
@@ -170,7 +170,8 @@ public class ChargingStationManager {
     public List<ChargingStation> getAvailableStations() {
         List<ChargingStation> available = new ArrayList<>();
         for (ChargingStation station : stations) {
-            if (station.isAvailable()) {
+            // Assuming stations with available sockets are available
+            if (station.getAvailableSockets() > 0) {
                 available.add(station);
             }
         }
@@ -227,15 +228,12 @@ public class ChargingStationManager {
             return null;
         }
 
-        if (!station.isAvailable()) {
+        // Check if station has available sockets
+        if (station.getAvailableSockets() <= 0) {
             return null;
         }
 
-        if (hours > station.getMaxDuration()) {
-            return null;
-        }
-
-        double totalCost = hours * station.getPrice();
+        double totalCost = hours * station.getPricePerHour();
 
         if (!user.deductBalance(totalCost)) {
             return null;
@@ -246,12 +244,14 @@ public class ChargingStationManager {
 
         Booking booking = new Booking(nextBookingId++, userId, stationId, startTime, endTime, totalCost);
         bookings.add(booking);
-        station.setAvailable(false);
+        
+        // Update available sockets
+        station.setAvailableSockets(station.getAvailableSockets() - 1);
         
         // 保存到数据库
         if (useDatabase) {
             saveBookingToDatabase(booking);
-            updateStationAvailability(stationId, false);
+            updateStationAvailability(stationId, station.getAvailableSockets());
         }
 
         return booking;
@@ -281,12 +281,12 @@ public class ChargingStationManager {
     /**
      * 更新充电站可用性
      */
-    private void updateStationAvailability(int stationId, boolean available) {
-        String sql = "UPDATE charging_stations SET available = ? WHERE station_id = ?";
+    private void updateStationAvailability(int stationId, int availableSockets) {
+        String sql = "UPDATE charging_stations SET available_sockets = ? WHERE station_id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
-            pstmt.setBoolean(1, available);
+            pstmt.setInt(1, availableSockets);
             pstmt.setInt(2, stationId);
             pstmt.executeUpdate();
         } catch (SQLException e) {
@@ -317,12 +317,13 @@ public class ChargingStationManager {
         booking.setStatus("completed");
         ChargingStation station = getStationById(booking.getStationId());
         if (station != null) {
-            station.setAvailable(true);
+            // Increase available sockets when booking is completed
+            station.setAvailableSockets(station.getAvailableSockets() + 1);
             
             // 更新数据库
             if (useDatabase) {
                 updateBookingStatus(bookingId, "completed");
-                updateStationAvailability(booking.getStationId(), true);
+                updateStationAvailability(booking.getStationId(), station.getAvailableSockets());
             }
         }
         return true;

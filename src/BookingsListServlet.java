@@ -38,20 +38,22 @@ public class BookingsListServlet extends HttpServlet {
         out.println("<body>");
         out.println("<h1>所有预订</h1>");
         out.println("<table>");
-        out.println("<tr><th>预订ID</th><th>用户ID</th><th>充电站ID</th><th>开始时间</th><th>结束时间</th><th>成本</th><th>状态</th></tr>");
+        out.println("<tr><th>预订ID</th><th>用户ID</th><th>充电站</th><th>开始时间</th><th>结束时间</th><th>成本</th><th>状态</th></tr>");
 
         if (bookings.isEmpty()) {
             out.println("<tr><td colspan='7' style='text-align:center;'>暂无预订</td></tr>");
         } else {
             for (Booking booking : bookings) {
                 String statusClass = booking.getStatus().equals("active") ? "active" : "completed";
+                ChargingStation station = manager.getStationById(booking.getStationId());
+                User user = manager.getUserById(booking.getUserId());
                 out.println("<tr>");
                 out.println("<td>" + booking.getBookingId() + "</td>");
-                out.println("<td>" + booking.getUserId() + "</td>");
-                out.println("<td>" + booking.getStationId() + "</td>");
+                out.println("<td>" + booking.getUserId() + (user != null ? " (" + user.getName() + ")" : "") + "</td>");
+                out.println("<td>" + booking.getStationId() + (station != null ? " (" + station.getName() + ")" : "") + "</td>");
                 out.println("<td>" + booking.getStartTime().format(formatter) + "</td>");
                 out.println("<td>" + booking.getEndTime().format(formatter) + "</td>");
-                out.println("<td>$" + String.format("%.2f", booking.getTotalCost()) + "</td>");
+                out.println("<td>¥" + String.format("%.2f", booking.getTotalCost()) + "</td>");
                 String displayStatus = booking.getStatus().equals("active") ? "活动" : "完成";
                 out.println("<td><span class='" + statusClass + "'>" + displayStatus + "</span></td>");
                 out.println("</tr>");
@@ -60,6 +62,7 @@ public class BookingsListServlet extends HttpServlet {
 
         out.println("</table>");
         out.println("<br><a href='/javaweb/'>主页</a>");
+        out.println("<br><a href='/javaweb/booking'>创建新预订</a>");
         out.println("</body>");
         out.println("</html>");
     }
