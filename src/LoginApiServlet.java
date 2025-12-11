@@ -14,30 +14,35 @@ public class LoginApiServlet extends HttpServlet {
         PrintWriter out = response.getWriter();
 
         try {
-            // Get user ID/phone and password from request
+            // Get user ID/phone/email and password from request
             String identifier = request.getParameter("identifier");
             String password = request.getParameter("password");
 
             if (identifier == null || identifier.trim().isEmpty() || password == null || password.trim().isEmpty()) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                out.print("{\"success\":false,\"message\":\"用户ID/手机号和密码是必填项\"}");
+                out.print("{\"success\":false,\"message\":\"用户ID/手机号/邮箱和密码是必填项\"}");
                 return;
             }
 
-            // Find user by ID or phone
+            // Find user by ID, phone, or email
             ChargingStationManager manager = ChargingStationManager.getInstance();
             User user = manager.getUserByIdOrPhone(identifier.trim());
+            
+            // If not found by ID or phone, try to find by email
+            if (user == null) {
+                user = manager.getUserByEmail(identifier.trim());
+            }
 
             if (user == null) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                out.print("{\"success\":false,\"message\":\"用户ID/手机号或密码错误\"}");
+                out.print("{\"success\":false,\"message\":\"用户ID/手机号/邮箱或密码错误\"}");
                 return;
             }
 
             // Verify password
             if (!user.getPassword().equals(password)) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                out.print("{\"success\":false,\"message\":\"用户ID/手机号或密码错误\"}");
+                out.print("{\"success\":false,\"message\":\"用户ID/手机号/邮箱或密码错误\"}");
                 return;
             }
 

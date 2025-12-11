@@ -73,6 +73,10 @@ public class ChargingStation {
     }
 
     // Setters
+    public void setStationId(int stationId) {
+        this.stationId = stationId;
+    }
+
     public void setName(String name) {
         this.name = name;
     }

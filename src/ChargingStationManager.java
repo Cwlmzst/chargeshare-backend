@@ -178,6 +178,55 @@ public class ChargingStationManager {
         return available;
     }
 
+    public boolean addChargingStation(ChargingStation station) {
+        // Add to memory list
+        stations.add(station);
+        
+        // Save to database if database is available
+        if (useDatabase) {
+            return addChargingStationToDatabase(station);
+        }
+        return true;
+    }
+    
+    private boolean addChargingStationToDatabase(ChargingStation station) {
+        String sql = "INSERT INTO charging_stations (name, latitude, longitude, address, total_sockets, available_sockets, power_output, price_per_hour, status, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
+            
+            pstmt.setString(1, station.getName());
+            pstmt.setDouble(2, station.getLatitude());
+            pstmt.setDouble(3, station.getLongitude());
+            pstmt.setString(4, station.getAddress());
+            pstmt.setInt(5, station.getTotalSockets());
+            pstmt.setInt(6, station.getAvailableSockets());
+            pstmt.setDouble(7, station.getPowerOutput());
+            pstmt.setDouble(8, station.getPricePerHour());
+            pstmt.setString(9, station.getStatus());
+            pstmt.setString(10, station.getDescription());
+            
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                // Get the generated station_id
+                try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        int generatedId = generatedKeys.getInt(1);
+                        station.setStationId(generatedId);
+                        System.out.println("✅ 充电站已保存到数据库，ID: " + generatedId);
+                        return true;
+                    }
+                }
+            }
+            System.out.println("✅ 充电站已保存到数据库");
+            return true;
+        } catch (SQLException e) {
+            System.err.println("❌ 保存充电站失败: " + e.getMessage());
+            // Remove from memory list if database save failed
+            stations.remove(station);
+            return false;
+        }
+    }
+
     // User methods
     public List<User> getAllUsers() {
         return new ArrayList<>(users);
@@ -261,6 +310,58 @@ public class ChargingStationManager {
             }
         } catch (SQLException e) {
             System.err.println("❌ 更新用户余额失败: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean registerUser(String name, String email, String phone, String password) {
+        // Check if user with same email already exists
+        if (getUserByEmail(email) != null) {
+            return false; // User with this email already exists
+        }
+        
+        // Create new user with default balance of 0
+        User newUser = new User(0, name, email, phone, password, 0.0);
+        
+        // Add to memory list
+        users.add(newUser);
+        
+        // Save to database if database is available
+        if (useDatabase) {
+            return addUserToDatabase(newUser);
+        }
+        return true;
+    }
+    
+    private boolean addUserToDatabase(User user) {
+        String sql = "INSERT INTO users (name, email, phone, password, balance) VALUES (?, ?, ?, ?, ?)";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
+            
+            pstmt.setString(1, user.getName());
+            pstmt.setString(2, user.getEmail());
+            pstmt.setString(3, user.getPhone());
+            pstmt.setString(4, user.getPassword());
+            pstmt.setDouble(5, user.getBalance());
+            
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                // Get the generated user_id
+                try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        int generatedId = generatedKeys.getInt(1);
+                        user.setUserId(generatedId);
+                        System.out.println("✅ 用户已保存到数据库，ID: " + generatedId);
+                        return true;
+                    }
+                }
+            }
+            System.out.println("✅ 用户已保存到数据库");
+            return true;
+        } catch (SQLException e) {
+            System.err.println("❌ 保存用户失败: " + e.getMessage());
+            // Remove from memory list if database save failed
+            users.remove(user);
             return false;
         }
     }

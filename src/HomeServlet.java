@@ -57,6 +57,16 @@ public class HomeServlet extends HttpServlet {
         out.println("<h3>📋 查看预订</h3>");
         out.println("<p>检查所有预订及其状态</p>");
         out.println("</a>");
+        
+        out.println("<a href='/javaweb/add-station' class='menu-item'>");
+        out.println("<h3>➕ 添加充电站</h3>");
+        out.println("<p>添加新的充电站到系统</p>");
+        out.println("</a>");
+        
+        out.println("<a href='/javaweb/register' class='menu-item'>");
+        out.println("<h3>📝 添加用户</h3>");
+        out.println("<p>添加新用户到系统</p>");
+        out.println("</a>");
         out.println("</div>");
         
         out.println("<div class='info'>");
@@ -67,6 +77,8 @@ public class HomeServlet extends HttpServlet {
         out.println("<p>✓ 自动从用户账户扣除余额</p>");
         out.println("<p>✓ 跟踪所有预订及其状态</p>");
         out.println("<p>✓ 实时可用性更新</p>");
+        out.println("<p>✓ 添加新的充电站到系统</p>");
+        out.println("<p>✓ 添加新用户到系统</p>");
         out.println("</div>");
         
         out.println("</div>");
