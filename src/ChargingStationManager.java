@@ -14,7 +14,7 @@ public class ChargingStationManager {
     private List<Booking> bookings;
     private int nextBookingId;
 
-    private boolean useDatabase = true; // 切换数据库和内存存储
+    public boolean useDatabase = true; // 切换数据库和内存存储
 
     private ChargingStationManager() {
         stations = new ArrayList<>();
@@ -219,6 +219,52 @@ public class ChargingStationManager {
             .orElse(null);
     }
 
+    public boolean updateUserInDatabase(User user) {
+        String sql = "UPDATE users SET name = ?, email = ?, phone = ? WHERE user_id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, user.getName());
+            pstmt.setString(2, user.getEmail());
+            pstmt.setString(3, user.getPhone());
+            pstmt.setInt(4, user.getUserId());
+            
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("✅ 用户信息已更新到数据库");
+                return true;
+            } else {
+                System.err.println("❌ 未找到要更新的用户");
+                return false;
+            }
+        } catch (SQLException e) {
+            System.err.println("❌ 更新用户信息失败: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean updateUserBalanceInDatabase(int userId, double newBalance) {
+        String sql = "UPDATE users SET balance = ? WHERE user_id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setDouble(1, newBalance);
+            pstmt.setInt(2, userId);
+            
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("✅ 用户余额已更新到数据库");
+                return true;
+            } else {
+                System.err.println("❌ 未找到要更新余额的用户");
+                return false;
+            }
+        } catch (SQLException e) {
+            System.err.println("❌ 更新用户余额失败: " + e.getMessage());
+            return false;
+        }
+    }
+
     // Booking methods
     public Booking createBooking(int userId, int stationId, int hours) {
         User user = getUserById(userId);
@@ -250,7 +296,13 @@ public class ChargingStationManager {
         
         // 保存到数据库
         if (useDatabase) {
-            saveBookingToDatabase(booking);
+            if (!saveBookingToDatabase(booking)) {
+                // 如果数据库保存失败，回滚内存中的更改
+                bookings.remove(booking);
+                user.addBalance(totalCost); // 退还用户余额
+                station.setAvailableSockets(station.getAvailableSockets() + 1); // 恢复插座数量
+                return null;
+            }
             updateStationAvailability(stationId, station.getAvailableSockets());
         }
 
@@ -260,7 +312,7 @@ public class ChargingStationManager {
     /**
      * 保存预约到数据库
      */
-    private void saveBookingToDatabase(Booking booking) {
+    private boolean saveBookingToDatabase(Booking booking) {
         String sql = "INSERT INTO bookings (user_id, station_id, start_time, end_time, total_cost, status) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -273,8 +325,10 @@ public class ChargingStationManager {
             pstmt.setString(6, booking.getStatus());
             pstmt.executeUpdate();
             System.out.println("✅ 预约已保存到数据库");
+            return true;
         } catch (SQLException e) {
             System.err.println("❌ 保存预约失败: " + e.getMessage());
+            return false;
         }
     }
     
